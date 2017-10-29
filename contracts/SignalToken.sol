@@ -48,7 +48,7 @@ contract SignalToken is Controlled {
     uint8 public decimals;
     string public symbol;
     string public version = "ST_0.1";
-	address public pegContract;
+    address public pegContract;
 
     struct Checkpoint {
         uint128 fromBlock;
@@ -79,7 +79,7 @@ contract SignalToken is Controlled {
         uint8 _decimalUnits,
         string _tokenSymbol,
         bool _transfersEnabled,
-		address _pegContract
+        address _pegContract
     ) public {
         tokenFactory = SignalTokenFactory(_tokenFactory);
         name = _tokenName;
@@ -89,7 +89,7 @@ contract SignalToken is Controlled {
         parentSnapShotBlock = _parentSnapShotBlock;
         transfersEnabled = _transfersEnabled;
         creationBlock = block.number;
-		pegContract = _pegContract;
+        pegContract = _pegContract;
     }
 
     function transfer(address _to, uint256 _amount) public returns (bool success) {
@@ -102,15 +102,15 @@ contract SignalToken is Controlled {
             require(transfersEnabled);
 
             if (allowed[_from][msg.sender] < _amount) {
-				return false;
-			}
+                return false;
+            }
             allowed[_from][msg.sender] -= _amount;
         }
         return doTransfer(_from, _to, _amount);
     }
 
     function doTransfer(address _from, address _to, uint _amount) internal returns(bool) {
-		   bytes memory empty;
+           bytes memory empty;
            if (_amount == 0) {
                return true;
            }
@@ -128,9 +128,9 @@ contract SignalToken is Controlled {
                require(TokenController(controller).onTransfer(_from, _to, _amount));
            }
 		   
-		   if (_to == pegContract) {
-			   TokenPeg(pegContract).tokenFallback(_from, _amount, empty);
-		   }
+           if (_to == pegContract) {
+               TokenPeg(pegContract).tokenFallback(_from, _amount, empty);
+           }
 
            updateValueAtNow(balances[_from], previousBalanceFrom - _amount);
 
@@ -363,10 +363,10 @@ contract SignalTokenFactory {
             _decimalUnits,
             _tokenSymbol,
             _transfersEnabled,
-			_pegContract
+            _pegContract
             );
 
-		NewTokenFromFactory(newToken, this, _snapshotBlock);
+        NewTokenFromFactory(newToken, this, _snapshotBlock);
         newToken.changeController(msg.sender);
         return newToken;
     }
