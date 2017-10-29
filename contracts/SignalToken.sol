@@ -43,11 +43,11 @@ contract TokenPeg {
 }
 
 contract SignalToken is Controlled {
-    string public name;
-    uint8 public decimals;
-    string public symbol;
-    string public version = "ST_0.1";
-    address public pegContract;
+    string public name;                     // Full token name
+    uint8 public decimals;                  // Number of decimal places (usually 18)
+    string public symbol;                   // Token ticker symbol
+    string public version = "STV_0.1";      // Arbitrary versioning scheme
+    address public pegContract;             // Address of peg contract (to reject direct transfers)
 
     struct Checkpoint {
         uint128 fromBlock;
