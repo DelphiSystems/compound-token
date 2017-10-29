@@ -47,7 +47,7 @@ contract SignalToken is Controlled {
     uint8 public decimals;                  // Number of decimal places (usually 18)
     string public symbol;                   // Token ticker symbol
     string public version = "STV_0.1";      // Arbitrary versioning scheme
-    address public pegContract;             // Address of peg contract (to reject direct transfers)
+    address public peg;                     // Address of peg contract (to reject direct transfers)
 
     struct Checkpoint {
         uint128 fromBlock;
@@ -71,7 +71,7 @@ contract SignalToken is Controlled {
         uint8 _decimalUnits,
         string _tokenSymbol,
         bool _transfersEnabled,
-        address _pegContract
+        address _peg
     ) public {
         tokenFactory = SignalTokenFactory(_tokenFactory);
         name = _tokenName;
@@ -81,7 +81,7 @@ contract SignalToken is Controlled {
         parentSnapShotBlock = _parentSnapShotBlock;
         transfersEnabled = _transfersEnabled;
         creationBlock = block.number;
-        pegContract = _pegContract;
+        peg = _peg;
     }
 
     function transfer(address _to, uint256 _amount) public returns (bool success) {
@@ -120,8 +120,8 @@ contract SignalToken is Controlled {
                require(TokenController(controller).onTransfer(_from, _to, _amount));
            }
 		   
-           if (_to == pegContract) {
-               TokenPeg(pegContract).tokenFallback(_from, _amount, empty);
+           if (_to == peg) {
+               TokenPeg(peg).tokenFallback(_from, _amount, empty);
            }
 
            updateValueAtNow(balances[_from], previousBalanceFrom - _amount);
@@ -205,7 +205,7 @@ contract SignalToken is Controlled {
         string _cloneTokenSymbol,
         uint _snapshotBlock,
         bool _transfersEnabled,
-		address _pegContract
+		address _peg
         ) public returns(address) {
         if (_snapshotBlock == 0) {
 			_snapshotBlock = block.number;
@@ -217,7 +217,7 @@ contract SignalToken is Controlled {
             _cloneDecimalUnits,
             _cloneTokenSymbol,
             _transfersEnabled,
-			_pegContract
+			_peg
             );
 
         cloneToken.changeController(msg.sender);
@@ -345,7 +345,7 @@ contract SignalTokenFactory {
         uint8 _decimalUnits,
         string _tokenSymbol,
         bool _transfersEnabled,
-		address _pegContract
+		address _peg
     ) public returns (SignalToken) {
         SignalToken newToken = new SignalToken(
             this,
@@ -355,7 +355,7 @@ contract SignalTokenFactory {
             _decimalUnits,
             _tokenSymbol,
             _transfersEnabled,
-            _pegContract
+            _peg
             );
 
         NewTokenFromFactory(newToken, this, _snapshotBlock);
