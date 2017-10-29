@@ -51,11 +51,11 @@ contract StandardToken is Token {
 }
 
 contract MinimalToken is StandardToken {
-    string public name;
-    uint8 public decimals;
-    string public symbol;
-    string public version = "MTV0.1";
-    address public peg;
+    string public name;                     // Full token name
+    uint8 public decimals;                  // Number of decimal places (usually 18)
+    string public symbol;                   // Token ticker symbol
+    string public version = "MTV0.1";       // Arbitrary versioning scheme
+    address public peg;                     // Address of peg contract (to reject direct transfers)
 
     function MinimalToken(
         uint256 _initialAmount,
