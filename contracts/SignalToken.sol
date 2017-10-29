@@ -39,11 +39,10 @@ contract ApproveAndCallFallBack {
 }
 
 contract TokenPeg {
-	function tokenFallback(address _from, uint _value, bytes _data) public;
+    function tokenFallback(address _from, uint _value, bytes _data) public;
 }
 
 contract SignalToken is Controlled {
-
     string public name;
     uint8 public decimals;
     string public symbol;
@@ -56,19 +55,12 @@ contract SignalToken is Controlled {
     }
 
     SignalToken public parentToken;
-
     uint public parentSnapShotBlock;
-
     uint public creationBlock;
-
     mapping (address => Checkpoint[]) balances;
-
     mapping (address => mapping (address => uint256)) allowed;
-
     Checkpoint[] totalSupplyHistory;
-
     bool public transfersEnabled;
-
     SignalTokenFactory public tokenFactory;
 
     function SignalToken(
