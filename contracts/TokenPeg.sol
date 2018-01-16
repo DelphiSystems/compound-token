@@ -28,7 +28,7 @@ contract TokenPeg {
     Configured(_minimalToken, _signalToken);
   }
 
-  function tokenFallback(address _from, uint _value, bytes _data) public {
+  function tokenFallback(address _from, uint _value, bytes /*_data*/) public {
     require(pegIsSetup);
     require(msg.sender == signalToken);
     giveMinimalTokens(_from, _value);
