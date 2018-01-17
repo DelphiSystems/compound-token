@@ -88,13 +88,15 @@ contract SignalToken is Controlled {
 
     function transfer(address _to, uint256 _amount, bytes _data) public returns (bool success) {
         require(transfersEnabled);
-        return doTransfer(msg.sender, _to, _amount, _data);
+        doTransfer(msg.sender, _to, _amount, _data);
+        return true;
     }
 
     function transfer(address _to, uint256 _amount) public returns (bool success) {
         bytes memory empty;
         require(transfersEnabled);
-        return doTransfer(msg.sender, _to, _amount, empty);
+        doTransfer(msg.sender, _to, _amount, empty);
+        return true;
     }
 
     function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
@@ -103,18 +105,18 @@ contract SignalToken is Controlled {
             require(transfersEnabled);
 
             if (msg.sender != peg || _to != peg) {
-                if (allowed[_from][msg.sender] < _amount) {
-                    return false;
-                }
+                require(allowed[_from][msg.sender] >= _amount);
                 allowed[_from][msg.sender] -= _amount;
             }
         }
-        return doTransfer(_from, _to, _amount, empty);
+        doTransfer(_from, _to, _amount, empty);
+        return true;
     }
 
-    function doTransfer(address _from, address _to, uint _amount, bytes _data) internal returns(bool) {
+    function doTransfer(address _from, address _to, uint _amount, bytes _data) internal {
            if (_amount == 0) {
-               return true;
+               Transfer(_from, _to, _amount);    // Follow the spec (fire event when transfer 0)
+               return;
            }
 
            require(parentSnapShotBlock < block.number);
@@ -122,9 +124,7 @@ contract SignalToken is Controlled {
            require((_to != 0) && (_to != address(this)));
 
            var previousBalanceFrom = balanceOfAt(_from, block.number);
-           if (previousBalanceFrom < _amount) {
-               return false;
-           }
+           require(previousBalanceFrom >= _amount);
 
            if (isContract(controller)) {
                require(TokenController(controller).onTransfer(_from, _to, _amount));
@@ -142,8 +142,6 @@ contract SignalToken is Controlled {
            }
 
            Transfer(_from, _to, _amount);
-
-           return true;
     }
 
     function balanceOf(address _owner) public constant returns (uint256 balance) {
