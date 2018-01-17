@@ -40,7 +40,7 @@ contract ApproveAndCallFallBack {
     function receiveApproval(address from, uint256 _amount, address _token, bytes _data) public;
 }
 
-contract TokenPeg {
+contract ERC223ReceivingContract {
     function tokenFallback(address _from, uint _value, bytes _data) public;
 }
 
@@ -86,25 +86,33 @@ contract SignalToken is Controlled {
         peg = _peg;
     }
 
-    function transfer(address _to, uint256 _amount) public returns (bool success) {
+    function transfer(address _to, uint256 _amount, bytes _data) public returns (bool success) {
         require(transfersEnabled);
-        return doTransfer(msg.sender, _to, _amount);
+        return doTransfer(msg.sender, _to, _amount, _data);
+    }
+
+    function transfer(address _to, uint256 _amount) public returns (bool success) {
+        bytes memory empty;
+        require(transfersEnabled);
+        return doTransfer(msg.sender, _to, _amount, empty);
     }
 
     function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
+        bytes memory empty;
         if (msg.sender != controller) {
             require(transfersEnabled);
 
-            if (allowed[_from][msg.sender] < _amount) {
-                return false;
+            if (msg.sender != peg || _to != peg) {
+                if (allowed[_from][msg.sender] < _amount) {
+                    return false;
+                }
+                allowed[_from][msg.sender] -= _amount;
             }
-            allowed[_from][msg.sender] -= _amount;
         }
-        return doTransfer(_from, _to, _amount);
+        return doTransfer(_from, _to, _amount, empty);
     }
 
-    function doTransfer(address _from, address _to, uint _amount) internal returns(bool) {
-           bytes memory empty;
+    function doTransfer(address _from, address _to, uint _amount, bytes _data) internal returns(bool) {
            if (_amount == 0) {
                return true;
            }
@@ -121,16 +129,17 @@ contract SignalToken is Controlled {
            if (isContract(controller)) {
                require(TokenController(controller).onTransfer(_from, _to, _amount));
            }
-		   
-           if (_to == peg) {
-               TokenPeg(peg).tokenFallback(_from, _amount, empty);
-           }
 
            updateValueAtNow(balances[_from], previousBalanceFrom - _amount);
 
            var previousBalanceTo = balanceOfAt(_to, block.number);
            require(previousBalanceTo + _amount >= previousBalanceTo);
            updateValueAtNow(balances[_to], previousBalanceTo + _amount);
+
+           if (isContract(_to)) {
+               ERC223ReceivingContract receiver = ERC223ReceivingContract(_to);
+               receiver.tokenFallback(_from, _amount, _data);
+           }
 
            Transfer(_from, _to, _amount);
 
